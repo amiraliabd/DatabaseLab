@@ -1,130 +1,196 @@
 import PySimpleGUI as sg
+from .entity import Button, InputField, TxtField
 from controller.controllers import UserController
 
 
 class UserView:
     def __init__(self):
         self.controller = UserController()
+        self.task_map = None
+        self.field_map = None
+        self.response_field = None
 
-        self.event = 'L-Home'
-
-        self._create_layout_base()
-
-        self.event_function_map = {
-            'Create': self._create,
-            'Delete': self._delete,
-            'Retrieve': self._retrieve,
-            'List': self._list,
-            'Update': self._update,
-        }
-        self.event_layout_map = {
-            'L-Create': self.create_layout,
-            'L-Delete': self.delete_layout,
-            'L-Retrieve': self.retrieve_layout,
-            'L-Home': self.home_layout,
-            'L-Update': self.update_layout
+        # initiate state of window
+        self.event = 'Home'
+        self.layout_map = {
+            'Home': self.home_layout,
         }
 
     def run(self):
         while True:
             # Create the window
-            self.window = sg.Window("DB Project", self.event_layout_map[self.event])
+            self.window = sg.Window("DB Project", self.layout_map[self.event]())
 
             # Create an event loop
             while True:
                 self.event, values = self.window.read()
 
-                if self.event in self.event_layout_map.keys():
+                if self.event in self.layout_map.keys():
                     self.window.close()
                     break
 
                 elif self.event == sg.WIN_CLOSED:
                     self.window.close()
                     exit()
-                elif self.event in self.event_function_map.keys():
-                    print(self.event)
-                    print(values)
-                    self.event_function_map[self.event](**values)
 
-    def _create_layout_base(self):
-        self.id_field = [sg.Text("user id"), sg.In(enable_events=True, key="id")]
-        self.first_name_field = [sg.Text("first name"), sg.In(enable_events=True, key="f_name")]
-        self.last_name_field = [sg.Text("last name"), sg.In(enable_events=True, key="l_name")]
-        self.email_field = [sg.Text("email"), sg.In(enable_events=True, key="email")]
-
-        self.create_button = sg.Button("Create")
-        self.retrieve_button = sg.Button("Retrieve")
-        self.delete_button = sg.Button("Delete")
-        self.update_button = sg.Button("Update")
-        self.list_button = sg.Button("List")
-
-        self.create_layout_button = sg.Button("Create", key="L-Create")
-        self.retrieve_layout_button = sg.Button("Retrieve", key="L-Retrieve")
-        self.delete_layout_button = sg.Button("Delete", key="L-Delete")
-        self.update_layout_button = sg.Button("Update", key="L-Update")
-        self.home_layout_button = sg.Button("Home", key="L-Home")
-
-    @property
-    def response_layout(self):
-        self.response_container_name = f"{self.event}-Response"
-        return sg.Text("", key=f"{self.event}-Response")
+                elif self.event in self.task_map.keys():
+                    data = {}
+                    for key, value in values.items():
+                        data[self.field_map[key]] = value
+                    print(data)
+                    self.task_map[self.event](**data)
 
     def response_layout_loader(self, response: str):
-        self.window.extend_layout(
-            self.window[self.response_container_name],
-            [[sg.Text(f"-------------------\n{response}\n-------------------")]]
-        )
+        self.response_field.extend(response, self.window)
 
-    @property
     def home_layout(self):
+        note = TxtField('Choose an action')
+        create_button = Button('Create', "L-Create")
+        delete_button = Button('Delete', "L-Delete")
+        update_button = Button('Update', "L-Update")
+        retrieve_button = Button('Retrieve', "L-Retrieve")
+        list_button = Button('List', "List")
+        response_layout = TxtField('')
+
+        self.response_field = response_layout
+        self.layout_map = {
+            create_button.key: self.create_layout,
+            delete_button.key: self.delete_layout,
+            update_button.key: self.update_layout,
+            retrieve_button.key: self.retrieve_layout,
+        }
+        self.task_map = {
+            list_button.key: self._list,
+        }
+
         return [
-            [sg.Text("Choose an action")],
+            [note.layout],
             [
-                self.create_layout_button,
-                self.delete_layout_button,
-                self.retrieve_layout_button,
-                self.update_layout_button,
+                create_button.layout,
+                delete_button.layout,
+                retrieve_button.layout,
+                update_button.layout,
             ],
-            [self.list_button],
-            [self.response_layout],
+            [list_button.layout],
+            [response_layout.layout],
         ]
 
-    @property
     def delete_layout(self):
+        id_field = TxtField('id')
+        id_input = InputField('')
+        delete_button = Button('Delete', "Delete")
+        home_button = Button('Home', "l-Home")
+        response_layout = TxtField('')
+
+        self.response_field = response_layout
+        self.layout_map = {
+            home_button.key: self.home_layout,
+        }
+        self.task_map = {
+            delete_button.key: self._delete,
+        }
+        self.field_map = {
+            id_input.key: 'id'
+        }
+
         return [
-            [self.id_field, ],
-            [self.delete_button, ],
-            [self.response_layout],
+            [id_field.layout, id_input.layout],
+            [delete_button.layout, home_button.layout],
+            [response_layout.layout],
         ]
 
-    @property
     def create_layout(self):
+        first_name = TxtField('first name')
+        first_name_input = InputField('')
+        last_name = TxtField('last name')
+        last_name_input = InputField('')
+        email = TxtField('last name')
+        email_input = InputField('')
+        create_button = Button('Create', 'Create')
+        home_button = Button('Home', 'l-Home')
+        response_layout = TxtField('')
+
+        self.response_field = response_layout
+        self.layout_map = {
+            home_button.key: self.home_layout,
+        }
+        self.task_map = {
+            create_button.key: self._create,
+        }
+        self.field_map = {
+            first_name_input.key: 'f_name',
+            last_name_input.key: 'l_name',
+            email_input.key: 'email',
+        }
+
         return [
-            [self.first_name_field],
-            [self.last_name_field],
-            [self.email_field],
-            [self.create_button],
-            [self.response_layout],
+            [first_name.layout, first_name_input.layout],
+            [last_name.layout, last_name_input.layout],
+            [email.layout, email_input.layout],
+            [create_button.layout, home_button.layout],
+            [response_layout.layout],
         ]
 
-    @property
     def update_layout(self):
+        note = TxtField("Note: you cant update user id. use this field to determine target user")
+        id_field = TxtField('id')
+        id_input = InputField('')
+        first_name = TxtField('first name')
+        first_name_input = InputField('')
+        last_name = TxtField('last name')
+        last_name_input = InputField('')
+        email = TxtField('last name')
+        email_input = InputField('')
+        update_button = Button('Update', 'Update')
+        home_button = Button('Home', 'l-Home')
+        response_layout = TxtField('')
+
+        self.response_field = response_layout
+        self.layout_map = {
+            home_button.key: self.home_layout,
+        }
+        self.task_map = {
+            update_button.key: self._update,
+        }
+        self.field_map = {
+            id_input.key: 'id',
+            first_name_input.key: 'f_name',
+            last_name_input.key: 'l_name',
+            email_input.key: 'email',
+        }
+
         return [
-            [sg.Text("Note: you cant update user id. use this field to determine target user")],
-            [self.id_field],
-            [self.first_name_field],
-            [self.last_name_field],
-            [self.email_field],
-            [self.update_button],
-            [self.response_layout],
+            [note.layout],
+            [id_field.layout, id_input.layout],
+            [first_name.layout, first_name_input.layout],
+            [last_name.layout, last_name_input.layout],
+            [email.layout, email_input.layout],
+            [update_button.layout, home_button.layout],
+            [response_layout.layout],
         ]
 
-    @property
     def retrieve_layout(self):
+        id_input = InputField('')
+        id_field = TxtField('id')
+        retrieve_button = Button('Retrieve', 'Retrieve')
+        home_button = Button('Home', 'l-Home')
+        response_layout = TxtField('')
+
+        self.response_field = response_layout
+        self.layout_map = {
+            home_button.key: self.home_layout,
+        }
+        self.task_map = {
+            retrieve_button.key: self._retrieve,
+        }
+        self.field_map = {
+            id_input.key: 'id',
+        }
+
         return [
-            [self.id_field, ],
-            [self.retrieve_button, ],
-            [self.response_layout],
+            [id_field.layout, id_input.layout],
+            [retrieve_button.layout, home_button.layout],
+            [response_layout.layout],
         ]
 
     def _retrieve(self, **kwargs):
