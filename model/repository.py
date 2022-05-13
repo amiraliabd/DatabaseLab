@@ -38,7 +38,7 @@ class UserRepo:
         self.cur.execute(f"DELETE FROM USER WHERE id='{user_id}'")
 
     def list(self):
-        self.cur.execute("SELECT * FROM USER ORDER BY DESC")
+        self.cur.execute("SELECT * FROM USER ORDER BY id DESC")
         return list(self.cur)
 
     def retrieve(self, user_id: str):
