@@ -1,2 +1,6 @@
-class NotFound(Exception):
+class DBException(Exception):
+    pass
+
+
+class NotFound(DBException):
     pass

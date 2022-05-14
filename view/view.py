@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 from .entity import Button, InputField, TxtField
 from controller.controllers import UserController
+from .decorator import exception_handler
 
 
 class UserView:
@@ -37,7 +38,6 @@ class UserView:
                     data = {}
                     for key, value in values.items():
                         data[self.field_map[key]] = value
-                    print(data)
                     self.task_map[self.event](**data)
 
     def response_layout_loader(self, response: str):
@@ -45,11 +45,11 @@ class UserView:
 
     def home_layout(self):
         note = TxtField('Choose an action')
-        create_button = Button('Create', "L-Create")
-        delete_button = Button('Delete', "L-Delete")
-        update_button = Button('Update', "L-Update")
-        retrieve_button = Button('Retrieve', "L-Retrieve")
-        list_button = Button('List', "List")
+        create_button = Button('Create')
+        delete_button = Button('Delete')
+        update_button = Button('Update')
+        retrieve_button = Button('Retrieve')
+        list_button = Button('List')
         response_layout = TxtField('')
 
         self.response_field = response_layout
@@ -78,8 +78,8 @@ class UserView:
     def delete_layout(self):
         id_field = TxtField('id')
         id_input = InputField('')
-        delete_button = Button('Delete', "Delete")
-        home_button = Button('Home', "l-Home")
+        delete_button = Button('Delete')
+        home_button = Button('Home')
         response_layout = TxtField('')
 
         self.response_field = response_layout
@@ -104,10 +104,10 @@ class UserView:
         first_name_input = InputField('')
         last_name = TxtField('last name')
         last_name_input = InputField('')
-        email = TxtField('last name')
+        email = TxtField('email')
         email_input = InputField('')
-        create_button = Button('Create', 'Create')
-        home_button = Button('Home', 'l-Home')
+        create_button = Button('Create')
+        home_button = Button('Home')
         response_layout = TxtField('')
 
         self.response_field = response_layout
@@ -139,10 +139,10 @@ class UserView:
         first_name_input = InputField('')
         last_name = TxtField('last name')
         last_name_input = InputField('')
-        email = TxtField('last name')
+        email = TxtField('email')
         email_input = InputField('')
-        update_button = Button('Update', 'Update')
-        home_button = Button('Home', 'l-Home')
+        update_button = Button('Update')
+        home_button = Button('Home')
         response_layout = TxtField('')
 
         self.response_field = response_layout
@@ -172,8 +172,8 @@ class UserView:
     def retrieve_layout(self):
         id_input = InputField('')
         id_field = TxtField('id')
-        retrieve_button = Button('Retrieve', 'Retrieve')
-        home_button = Button('Home', 'l-Home')
+        retrieve_button = Button('Retrieve')
+        home_button = Button('Home')
         response_layout = TxtField('')
 
         self.response_field = response_layout
@@ -193,10 +193,12 @@ class UserView:
             [response_layout.layout],
         ]
 
+    @exception_handler
     def _retrieve(self, **kwargs):
         user = self.controller.retrieve(**kwargs)
         self.response_layout_loader(str(user))
 
+    @exception_handler
     def _list(self, **kwargs):
         users = self.controller.list()
         resp = ""
@@ -204,14 +206,17 @@ class UserView:
             resp += f"{str(user)}\n"
         self.response_layout_loader(resp)
 
+    @exception_handler
     def _update(self, **kwargs):
         self.controller.update(**kwargs)
         self.response_layout_loader(f"User with was updated with new data ")
 
+    @exception_handler
     def _delete(self, **kwargs):
         self.controller.delete(**kwargs)
         self.response_layout_loader(f"User with {kwargs} deleted")
 
+    @exception_handler
     def _create(self, **kwargs):
         self.controller.insert(**kwargs)
         self.response_layout_loader(f"User with {kwargs} created")
