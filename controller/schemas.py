@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, exceptions
 from marshmallow.validate import Length
 
 
@@ -17,9 +17,17 @@ class InsertUserSchema(Schema):
 
 
 class UpdateUserSchema(GetUserSchema):
-    f_name = fields.String(allow_null=True, validate=Length(2, 20))
-    l_name = fields.String(allow_null=True, validate=Length(2, 20))
-    email = fields.Email(allow_null=True, validate=Length(2, 20))
+    f_name = fields.String(allow_none=True, validate=Length(2, 20))
+    l_name = fields.String(allow_none=True, validate=Length(2, 20))
+    email = fields.Email(allow_none=True, validate=Length(2, 20))
+
+    def load(self, *args, **kwargs):
+        values = super(UpdateUserSchema, self).load(*args, **kwargs)
+        copy_values = values.copy()
+        copy_values.pop('id')
+        if set(copy_values.values()) == {None}:
+            raise exceptions.ValidationError('You should at least change one item for update')
+        return values
 
 
 class UserResponseSchema(GetUserSchema):

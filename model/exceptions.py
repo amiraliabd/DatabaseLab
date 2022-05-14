@@ -4,3 +4,7 @@ class DBException(Exception):
 
 class NotFound(DBException):
     pass
+
+
+class IntegrityError(DBException):
+    pass

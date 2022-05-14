@@ -24,6 +24,9 @@ class UserController:
         self.repo.delete(user['id'])
 
     def update(self, **kwargs):
+        for key, value in kwargs.items():
+            if value == '':
+                kwargs[key] = None
         updated_user = UpdateUserSchema().load(kwargs)
         user_id = updated_user.pop('id')
         self.repo.update(user_id, updated_user)

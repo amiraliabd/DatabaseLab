@@ -1,6 +1,6 @@
 import mariadb
 import os
-from .exceptions import NotFound
+from .exceptions import NotFound, IntegrityError
 
 
 class UserRepo:
@@ -25,13 +25,16 @@ class UserRepo:
                          "id INT NOT NULL AUTO_INCREMENT,"
                          "f_name VARCHAR(20) NOT NULL,"
                          "l_name VARCHAR(20) NOT NULL,"
-                         "email VARCHAR(20) NOT NULL,"
+                         "email VARCHAR(20) NOT NULL UNIQUE,"
                          "PRIMARY KEY (id)"
                          ")"
                          )
 
     def insert(self, f_name: str, l_name: str, email: str):
-        self.cur.execute(f"INSERT INTO USER (f_name, l_name, email) VALUES ('{f_name}', '{l_name}', '{email}')")
+        try:
+            self.cur.execute(f"INSERT INTO USER (f_name, l_name, email) VALUES ('{f_name}', '{l_name}', '{email}')")
+        except mariadb.IntegrityError:
+            raise IntegrityError(f"User with email {email} already exists")
 
     def delete(self, user_id: int):
         self.retrieve(user_id)
@@ -55,5 +58,7 @@ class UserRepo:
             if new_data[column]:
                 update_query += f"{column}='{new_data[column]}', "
         query = f"UPDATE USER SET {update_query[:-2]} WHERE id={user_id}"
-        self.cur.execute(query)
-        pass
+        try:
+            self.cur.execute(query)
+        except mariadb.IntegrityError:
+            raise IntegrityError(f"User with email {new_data['email']} already exists")
